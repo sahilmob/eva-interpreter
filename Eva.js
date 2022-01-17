@@ -20,13 +20,13 @@ class Eva {
 
     // var declaration
     if (exp[0] === "var") {
-      const [_, name, value] = exp;
+      const [_tag, name, value] = exp;
       return env.define(name, this.eval(value, env));
     }
 
     // var update
     if (exp[0] === "set") {
-      const [_, name, value] = exp;
+      const [_tag, name, value] = exp;
       return env.assign(name, this.eval(value, env));
     }
 
@@ -43,7 +43,7 @@ class Eva {
 
     if (exp[0] === "if") {
       const [_tag, condition, consequent, alternate] = exp;
-      if (this.eval(condition)) {
+      if (this.eval(condition, env)) {
         return this.eval(consequent, env);
       }
       return this.eval(alternate, env);

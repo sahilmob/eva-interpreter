@@ -2,15 +2,15 @@ const Eva = require("../Eva");
 const Environment = require("../environment");
 
 const tests = [
-  // require("./self-eval.test"),
-  // require("./math.test"),
-  // require("./vars.test"),
-  // require("./block.test"),
-  // require("./if.test"),
-  // require("./while.test"),
-  // require("./built-in-functions.test"),
+  require("./self-eval.test"),
+  require("./math.test"),
+  require("./vars.test"),
+  require("./block.test"),
+  require("./if.test"),
+  require("./while.test"),
+  require("./built-in-functions.test"),
   require("./user-defined-functions.test"),
-  // require("./lambda-functions.test"),
+  require("./lambda-functions.test"),
 ];
 
 const eva = new Eva();

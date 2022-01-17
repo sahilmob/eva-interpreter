@@ -4,8 +4,8 @@ class Environment {
     this.parent = parent;
   }
 
-  define(name, value) {
-    this.record[name] = value;
+  define(key, value) {
+    this.record[key] = value;
     return value;
   }
 

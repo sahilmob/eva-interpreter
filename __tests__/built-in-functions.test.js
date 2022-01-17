@@ -10,5 +10,5 @@ module.exports = (eva) => {
 
   test(eva, "(>= 5 5)", true);
   test(eva, "(<= 5 5)", true);
-  // test(eva, "(= 5 5)", true);
+  test(eva, "(= 5 5)", true);
 };
