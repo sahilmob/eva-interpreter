@@ -10,6 +10,10 @@ class Eva {
     this._transformer = new Transformer();
   }
 
+  evalGlobal(expressions) {
+    return this._evalBlock(["block", expressions], this.global);
+  }
+
   eval(exp, env = this.global) {
     if (this._isNumber(exp)) {
       return exp;
@@ -27,8 +31,16 @@ class Eva {
 
     // var update
     if (exp[0] === "set") {
-      const [_tag, name, value] = exp;
-      return env.assign(name, this.eval(value, env));
+      const [_tag, ref, value] = exp;
+
+      if (ref[0] === "prop") {
+        const [_tag, instance, propName] = ref;
+        const instanceEnv = this.eval(instance, env);
+
+        return instanceEnv.define(propName, this.eval(value, env));
+      }
+
+      return env.assign(ref, this.eval(value, env));
     }
 
     // var lookup
@@ -80,6 +92,43 @@ class Eva {
       return { params, body, env };
     }
 
+    if (exp[0] === "class") {
+      const [_tag, name, parent, body] = exp;
+      const parentEnv = this.eval(parent, env) || env;
+      const classEnv = new Environment({}, parentEnv);
+
+      this._evalBody(body, classEnv);
+      return env.define(name, classEnv);
+    }
+
+    if (exp[0] === "super") {
+      const [_tag, className] = exp;
+
+      return this.eval(className, env).parent;
+    }
+
+    if (exp[0] === "new") {
+      const classEnv = this.eval(exp[1], env);
+
+      const instanceEnv = new Environment({}, classEnv);
+      const args = exp.slice(2).map((args) => this.eval(args, env));
+
+      this._callUserDefinedFunction(classEnv.lookup("constructor"), [
+        instanceEnv,
+        ...args,
+      ]);
+
+      return instanceEnv;
+    }
+
+    if (exp[0] === "prop") {
+      const [_tag, instance, name] = exp;
+
+      const instanceEnv = this.eval(instance, env);
+
+      return instanceEnv.lookup(name);
+    }
+
     if (Array.isArray(exp)) {
       const fn = this.eval(exp[0], env);
       const args = exp.slice(1).map((arg) => this.eval(arg, env));
@@ -88,16 +137,20 @@ class Eva {
         return fn(...args);
       }
 
-      const activationRecord = {};
-      fn.params.forEach((param, index) => {
-        activationRecord[param] = args[index];
-      });
-
-      const activationEnvironment = new Environment(activationRecord, fn.env);
-      return this._evalBody(fn.body, activationEnvironment);
+      return this._callUserDefinedFunction(fn, args);
     }
 
     throw "Unimplemented " + JSON.stringify(exp);
+  }
+
+  _callUserDefinedFunction(fn, args) {
+    const activationRecord = {};
+    fn.params.forEach((param, index) => {
+      activationRecord[param] = args[index];
+    });
+
+    const activationEnvironment = new Environment(activationRecord, fn.env);
+    return this._evalBody(fn.body, activationEnvironment);
   }
 
   _evalBody(body, env) {
@@ -169,6 +222,7 @@ const GlobalEnvironment = new Environment({
   print(...args) {
     console.log(...args);
   },
+  Point: {},
 });
 
 module.exports = Eva;
