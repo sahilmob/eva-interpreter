@@ -10,8 +10,8 @@ class Eva {
     this._transformer = new Transformer();
   }
 
-  evalGlobal(expressions) {
-    return this._evalBlock(["block", expressions], this.global);
+  evalGlobal(exp) {
+    return this._evalBody(exp, this.global);
   }
 
   eval(exp, env = this.global) {
@@ -179,7 +179,7 @@ class Eva {
   }
 
   _isVariableName(exp) {
-    return typeof exp === "string" && /^[+\-*/<>=a-zA-Z]*$/.test(exp);
+    return typeof exp === "string" && /^[+\-*/<>=a-zA-Z0-9_]*$/.test(exp);
   }
 }
 
