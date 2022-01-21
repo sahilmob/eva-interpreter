@@ -1,5 +1,9 @@
+const fs = require("fs");
+
 const Environment = require("./Environment");
 const Transformer = require("./transformer/Transformer");
+const evaParser = require("./parser/evaParser");
+
 /**
  * Eva interpreter
  */
@@ -127,6 +131,24 @@ class Eva {
       const instanceEnv = this.eval(instance, env);
 
       return instanceEnv.lookup(name);
+    }
+
+    if (exp[0] === "module") {
+      const [_tag, name, body] = exp;
+      const moduleEnv = new Environment({}, env);
+
+      this._evalBody(body, moduleEnv);
+
+      return env.define(name, moduleEnv);
+    }
+
+    if (exp[0] === "import") {
+      const [_tag, name] = exp;
+      const moduleSrc = fs.readFileSync("./modules/" + name + ".eva", "utf-8");
+      const body = evaParser.parse(`(begin ${moduleSrc})`);
+      const moduleExp = ["module", name, body];
+
+      return this.eval(moduleExp, this.global);
     }
 
     if (Array.isArray(exp)) {
